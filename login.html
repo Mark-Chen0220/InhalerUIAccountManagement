@@ -85,6 +85,8 @@
 
   <script>
     // 替換成你的 Supabase 設定
+    const SUPABASE_URL = 'https://ttmikfiisngmckyycwsz.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0bWlrZmlpc25nbWNreXljd3N6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgyNDY2MzYsImV4cCI6MjA2MzgyMjYzNn0.ejE4Bn6UCuSfJ9qc3KYDXGZyCqaqjVHe_1uV2aHCXUs';
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     function toggleForms() {
