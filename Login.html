@@ -12,9 +12,16 @@
       margin: 0;
       padding: 0;
     }
+    .flex-center {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: #f5f5f5;
+    }
     .container {
       max-width: 350px;
-      margin: 60px auto;
+      margin: 0 auto;
       background: #fff;
       border-radius: 8px;
       padding: 30px 25px;
@@ -90,38 +97,43 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- 登入表單 -->
-    <form id="login-form">
-      <h2>登入</h2>
-      <input type="email" id="login-email" placeholder="電子郵件" required>
-      <div id="login-email-error" class="input-error">請輸入有效的電子郵件</div>
-      <input type="password" id="login-password" placeholder="密碼" required>
-      <div id="login-password-error" class="input-error">請輸入密碼</div>
-      <button type="submit" id="login-button">登入</button>
-      <span class="toggle-link" onclick="toggleForms()">沒有帳號？註冊</span>
-      <div id="login-message" class="message"></div>
-    </form>
+  <div class="flex-center">
+    <div class="container">
+      <!-- 登入表單 -->
+      <form id="login-form">
+        <h2>登入</h2>
+        <input type="email" id="login-email" placeholder="電子郵件" required>
+        <div id="login-email-error" class="input-error">請輸入有效的電子郵件</div>
+        <input type="password" id="login-password" placeholder="密碼" required>
+        <div id="login-password-error" class="input-error">請輸入密碼</div>
+        <button type="submit" id="login-button">登入</button>
+        <span class="toggle-link" onclick="toggleForms()">沒有帳號？註冊</span>
+        <div id="login-message" class="message"></div>
+      </form>
 
-    <!-- 註冊表單 -->
-    <form id="register-form" class="hidden">
-      <h2>註冊</h2>
-      <input type="text" id="register-username" placeholder="用戶名稱（可略過）">
-      <input type="email" id="register-email" placeholder="電子郵件" required>
-      <div id="register-email-error" class="input-error">請輸入有效的電子郵件</div>
-      <input type="password" id="register-password" placeholder="密碼" required>
-      <div id="register-password-error" class="input-error">密碼至少需要6個字符</div>
-      <button type="submit" id="register-button">註冊</button>
-      <span class="toggle-link" onclick="toggleForms()">已有帳號？登入</span>
-      <div id="register-message" class="message"></div>
-    </form>
+      <!-- 註冊表單 -->
+      <form id="register-form" class="hidden">
+        <h2>註冊</h2>
+        <input type="text" id="register-username" placeholder="用戶名稱（可略過）">
+        <input type="email" id="register-email" placeholder="電子郵件" required>
+        <div id="register-email-error" class="input-error">請輸入有效的電子郵件</div>
+        <input type="password" id="register-password" placeholder="密碼" required>
+        <div id="register-password-error" class="input-error">密碼至少需要6個字符</div>
+        <button type="submit" id="register-button">註冊</button>
+        <span class="toggle-link" onclick="toggleForms()">已有帳號？登入</span>
+        <div id="register-message" class="message"></div>
+      </form>
+    </div>
   </div>
 
   <script>
     // 替換成你的 Supabase 設定
-    const SUPABASE_URL = 'https://ttmikfiisngmckyycwsz.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0bWlrZmlpc25nbWNreXljd3N6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgyNDY2MzYsImV4cCI6MjA2MzgyMjYzNn0.ejE4Bn6UCuSfJ9qc3KYDXGZyCqaqjVHe_1uV2aHCXUs';
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const SUPABASE_URL = 'https://jqdtlkxvyrrpnbkyiigg.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpxZHRsa3h2eXJycG5ia3lpaWdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgyNTAwMTksImV4cCI6MjA2MzgyNjAxOX0.6ufrl0cNDT1LZqge0yTEGzzJ4IlYYubtKis2_ewkERw';
+
+    const { createClient } = window.supabase;
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 
     // 表單切換
     function toggleForms() {
@@ -206,7 +218,7 @@
         console.log('登入使用者：', data);
         
         setTimeout(() => {
-          window.location.href = 'InhalerUI_V4.html';
+          window.location.href = 'HomePage.html';
         }, 1000);
       } catch (error) {
         showError('login-message', '登入失敗：' + error.message);
