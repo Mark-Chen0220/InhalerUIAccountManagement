@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>呼吸流量監測</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: 'Noto Sans TC', Arial, sans-serif; background: #f7faf7; margin: 0; }
+    .container { max-width: 800px; margin: 40px auto; background: #fff; border-radius: 16px; box-shadow: 0 2px 8px #d0e2d0; padding: 32px; }
+    .header { display: flex; justify-content: space-between; align-items: center; }
+    .chart-container { position:relative; aspect-ratio:2/1; width:100%; max-width:600px; margin:0 auto; }
+    .row { display: flex; gap: 16px; }
+    .row input { flex: 1; padding: 8px; border: 1px solid #cce0cc; border-radius: 6px; }
+    .save-btn { background: #1abc68; color: #fff; border: none; border-radius: 6px; padding: 10px 24px; font-size: 16px; cursor: pointer; margin-top: 16px; }
+    .connect-btn { background: #4e7fff; color: #fff; border: none; border-radius: 6px; padding: 8px 18px; font-size: 15px; cursor: pointer; margin-bottom: 12px; }
+    .status { font-size: 18px; margin: 10px 0 0 0; color: #1abc68; }
+    .lights { display: flex; gap: 16px; margin: 16px 0; }
+    .light { width: 32px; height: 32px; border-radius: 50%; background: #ccc; border: 2px solid #bbb; }
+    .light.red { background: #ff4b33; box-shadow: 0 0 8px #ff4b33; }
+    .light.green { background: #00ffe8; box-shadow: 0 0 8px #00ffe8; }
+    .light.grey { background: #ccc; }
+    #usbHint { margin-top:10px; padding:10px; background:#f0f8ff; border-radius:6px; color:#333; border:1px solid #b2dfdb; }
+
+    /* 圖片區塊：橫向排列、等高縮放 */
+    .image-row {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 18px;
+      margin: 12px 0 12px 0;
+      flex-wrap: wrap;
+    }
+    .imgbox {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      /* 這裡不再設 max-width，交由圖片本身控制 */
+    }
+    .imgbox img {
+      height: 180px;      /* 統一高度 */
+      width: auto;        /* 保持比例 */
+      object-fit: contain;
+      background: #f7faf7;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px #e0e0e0;
+      max-width: 280px;   /* 防止過寬 */
+      display: block;
+    }
+    .imgbox .caption {
+      font-size: 14px;
+      color: #888;
+      margin-top: 4px;
+      text-align: center;
+    }
+
+    /* 肺部圖像區塊 */
+    #lungsBox {
+      display: none;
+      width: 267px;   /* 534/2 */
+      height: 234px;  /* 467/2 */
+      margin: 24px auto 0 auto;
+      position: relative;
+      background: #f7faf7;
+      border-radius: 20px;
+      box-shadow: 0 2px 8px #d0e2d0;
+    }
+    #lungsImg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      position: relative;
+      z-index: 2;
+      pointer-events: none;
+      user-select: none;
+    }
+    #lungsFill {
+      position: absolute;
+      left: 0; bottom: 0;
+      width: 100%;
+      height: 0%;
+      background: rgba(30,200,200,0.6);
+      z-index: 1;
+      transition: height 1s;
+      border-radius: 0 0 36px 36px;
+      pointer-events: none;
+    }
+    #lungsPercent {
+      position: absolute; left:0; right:0; bottom:10px; text-align:center; color:#1abc68; font-weight:bold; font-size:18px; z-index:3;
+      text-shadow:0 0 6px #fff;
+      pointer-events: none;
+    }
+    @media (max-width: 600px) {
+      .container { padding: 8px; }
+      .image-row { flex-direction: column; align-items: center; }
+      .imgbox img { max-width: 98vw; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>呼吸流量監測</h2>
+    </div>
+    <button class="connect-btn" id="connectBtn" title="點擊名為USB Serial的裝置">連接裝置</button>
+    <div id="usbHint">點擊名為USB Serial的裝置</div>
+    <div id="status" class="status"></div>
+    <div class="lights" id="lights">
+      <div class="light grey" id="light1"></div>
+      <div class="light grey" id="light2"></div>
+      <div class="light grey" id="light3"></div>
+    </div>
+    <!-- 圖片區塊 -->
+    <div class="image-row" id="stepImages">
+      <!-- 動態插入圖片 -->
+    </div>
+    <div class="chart-container" id="chartBox">
+      <canvas id="flowChart"></canvas>
+    </div>
+    <!-- 肺部沈積率圖像 -->
+    <div id="lungsBox">
+      <img src="lungs.png" id="lungsImg" width="267" height="234" alt="肺部圖像">
+      <div id="lungsFill"></div>
+      <div id="lungsPercent"></div>
+    </div>
+    <div>
+      <span>流量：</span><span id="flowValue">0.00</span>
+    </div>
+    <div id="instruction" class="status"></div>
+    <div class="row" style="margin-top: 20px;">
+      <input id="patientId" placeholder="病患編號" />
+      <input id="patientName" placeholder="病患姓名" />
+    </div>
+    <button class="save-btn" onclick="saveData()">儲存資料</button>
+  </div>
+
+<script>
+const instructions = [
+  "請先取下吸入器蓋子，然後放置吸入器。若燈未亮，請向左（順時針）旋轉，左側第一顆指示燈應亮綠色。",
+  "請確定吸入器蓋子已取下，然後向右（逆時針）旋轉以釋放劑量，第二顆燈應亮綠色。",
+  "現在可以吸入藥劑：<br>請將吸嘴含入口中，用力深吸，移開吸入器並屏住呼吸約10秒。",
+  "吸入器使用完成，裝置將於10秒後關閉。"
+];
+
+// 動態圖片資料（等高縮放）
+const stepImagesData = [
+  // step 0
+  [
+    { src: "lidOff_highRes.png", alt: "取下吸入器蓋子", caption: "取下吸入器蓋子" },
+    { src: "clockwise.png", alt: "順時針旋轉", caption: "順時針旋轉" }
+  ],
+  // step 1
+  [
+    { src: "lidOff_highRes.png", alt: "取下吸入器蓋子", caption: "取下吸入器蓋子" },
+    { src: "counterclockwise.png", alt: "逆時針旋轉", caption: "逆時針旋轉" }
+  ],
+  // step 2
+  [
+    { src: "breatheOutandIn.png", alt: "吐氣吸氣示意", caption: "吐氣3秒後深吸3秒" }
+  ],
+  // step 3
+  []
+];
+
+const lightModes = [
+  ['grey', 'grey', 'grey'],
+  ['green', 'red', 'red'],
+  ['green', 'green', 'red'],
+  ['green', 'green', 'green']
+];
+
+const ctx = document.getElementById('flowChart').getContext('2d');
+let chartData = {
+  labels: [],
+  datasets: [{
+    label: 'Flow',
+    data: [],
+    borderColor: '#1abc68',
+    fill: false,
+    tension: 0.3
+  }]
+};
+const flowChart = new Chart(ctx, {
+  type: 'line',
+  data: chartData,
+  options: {
+    responsive: true,
+    maintainAspectRatio: true,
+    aspectRatio: 2,
+    animation: false,
+    scales: {
+      x: { title: { display: true, text: '時間 (秒)' } },
+      y: { title: { display: true, text: '流量' }, min: 0 }
+    }
+  }
+});
+
+const observer = new ResizeObserver(() => {
+flowChart.resize();
+});
+observer.observe(document.getElementById('chartBox'));
+
+let serialPort, reader;
+let startTime = null;
+let flowRecords = [];
+let currentStep = 0; // 0:初始, 1:Phase1, 2:Phase2, 3:完成
+let flowData = []; // [[時間, flow值]]
+let lastFlowTime = 0;
+let budldValue = null;
+let budldTimer = null;
+
+function setStep(step) {
+  currentStep = step;
+  const lights = lightModes[step];
+  for (let i = 0; i < 3; i++) {
+    const lightEl = document.getElementById('light' + (i + 1));
+    lightEl.className = 'light ' + lights[i];
+  }
+
+  // 動態插入圖片，統一高度180px，寬度自動
+  const stepImages = document.getElementById('stepImages');
+  stepImages.innerHTML = '';
+  stepImages.style.display = (stepImagesData[step].length > 0) ? 'flex' : 'none';
+  if (stepImagesData[step].length > 0) {
+    stepImagesData[step].forEach(img => {
+      const box = document.createElement('div');
+      box.className = 'imgbox';
+      box.innerHTML =
+        `<img src="${img.src}" alt="${img.alt}">
+         <div class="caption">${img.caption}</div>`;
+      stepImages.appendChild(box);
+    });
+  }
+
+  document.getElementById('chartBox').style.display = (step === 3 ? 'block' : 'none');
+  document.getElementById('lungsBox').style.display = 'none';
+
+  // 指示
+  document.getElementById('instruction').innerHTML = instructions[step];
+
+  // 步驟3時啟動BUDLD計算監聽
+  if (step === 3) {
+    if (budldTimer) clearInterval(budldTimer);
+    budldTimer = setInterval(() => {
+      if (Date.now() - lastFlowTime > 2500 && flowData.length > 0 && !budldValue) {
+        const result = calculateBUDLD();
+        if (result) {
+          budldValue = result;
+          document.getElementById('instruction').innerHTML =
+            `測試已完成<br>BUDLD: ${result.budld} µg<br>峰值流量: ${result.peakFlow} L/min<br>現在可儲存患者資料<br>如需重新使用請刷新頁面`;
+          showLungFill(parseFloat(result.budld));
+        }
+        clearInterval(budldTimer);
+      }
+    }, 1000);
+  }
+}
+
+function showLungFill(budld) {
+  const percent = Math.max(0, Math.min(1, budld/160));
+  const percentText = `${Math.round(percent*100)}%`;
+  document.getElementById('lungsBox').style.display = 'block';
+  document.getElementById('lungsFill').style.height = (percent*100) + '%';
+  document.getElementById('lungsPercent').innerText = percentText;
+}
+
+document.getElementById('connectBtn').onclick = async function () {
+  document.getElementById('usbHint').style.display = 'none';
+  if (!('serial' in navigator)) {
+    alert('你的瀏覽器不支援 Web Serial API，請使用 Chrome 或 Edge。');
+    return;
+  }
+  try {
+    serialPort = await navigator.serial.requestPort();
+    await serialPort.open({ baudRate: 9600 });
+    document.getElementById('status').innerText = "裝置已連接，等待資料...";
+    startTime = Date.now();
+    flowRecords = [];
+    flowData = [];
+    budldValue = null;
+    setStep(0);
+    listenSerial();
+  } catch (e) {
+    document.getElementById('status').innerText = e.message;
+  }
+};
+
+async function listenSerial() {
+  const decoder = new TextDecoderStream();
+  serialPort.readable.pipeTo(decoder.writable);
+  reader = decoder.readable.getReader();
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    if (value) handleSerialLine(value.trim());
+  }
+  reader.releaseLock();
+}
+
+function handleSerialLine(line) {
+  // 狀態判斷（部分比對）
+  if (line.includes("Phase 1 complete!")) {
+    setStep(1);
+    return;
+  }
+  if (line.includes("Phase 2 complete!!")) {
+    setStep(2);
+    return;
+  }
+  if (line.includes("Phase 4 complete!!!")) {
+    setStep(3);
+    return;
+  }
+  // 流量數據
+  const match = line.match(/Flow[:：]\s*([0-9.]+)/i);
+  if (match) {
+    if (currentStep === 2) {
+      // step 2 正常接收 flow
+    } else if (currentStep < 2) {
+      setStep(2);
+    }
+    // step 3 時收到 flow，不切換 step
+    const flow = parseFloat(match[1]);
+    const now = ((Date.now() - startTime) / 1000).toFixed(2);
+    lastFlowTime = Date.now();
+    flowData.push([parseFloat(now), flow]);
+    document.getElementById('flowValue').innerText = flow.toFixed(2);
+    chartData.labels.push(now);
+    chartData.datasets[0].data.push(flow);
+    if (chartData.labels.length > 80) {
+      chartData.labels.shift();
+      chartData.datasets[0].data.shift();
+    }
+    flowChart.update();
+    flowRecords.push({ time: now, flow: flow });
+  }
+}
+
+function calculateBUDLD() {
+  if (flowData.length === 0) return null;
+  // 只取第一個上升段
+  let firstRiseStart = -1, firstRiseEnd = -1, peakFlow = 0;
+  for (let i = 0; i < flowData.length; i++) {
+    if (flowData[i][1] > 0 && firstRiseStart === -1) firstRiseStart = i;
+    if (firstRiseStart !== -1 && flowData[i][1] > peakFlow) {
+      peakFlow = flowData[i][1];
+      firstRiseEnd = i;
+    }
+    if (firstRiseStart !== -1 && flowData[i][1] === peakFlow) break;
+  }
+  if (firstRiseStart === -1) return null;
+  // 只用第一個上升段資料
+  const usedData = flowData.slice(firstRiseStart, firstRiseEnd + 1);
+  const sumFlow = usedData.reduce((sum, d) => sum + d[1], 0);
+  const inhaledVolume = sumFlow * 0.2 / 60;
+  const risingTime = usedData.length * 0.2;
+  const budld = 160 * (
+    0.146661033
+    - 0.057608304 * risingTime
+    + 0.00475804 * peakFlow
+    + 0.077573091 * inhaledVolume
+  );
+  return {
+    budld: budld.toFixed(2),
+    peakFlow: peakFlow.toFixed(2),
+    risingTime: risingTime.toFixed(1)
+  };
+}
+
+function saveData() {
+  const id = document.getElementById('patientId').value.trim();
+  const name = document.getElementById('patientName').value.trim();
+
+  if (!id || !name) {
+    alert("請輸入病患編號與姓名");
+    return;
+  }
+
+  let content = `病患ID: ${id}\n病患姓名: ${name}\n\n`;
+  if (budldValue) {
+    content += `肺部沈積率 (BUDLD): ${budldValue.budld} µg\n`;
+    content += `峰值流量: ${budldValue.peakFlow} L/min\n`;
+    content += `上升時間: ${budldValue.risingTime} 秒\n\n`;
+  }
+  content += "時間(s)\t流量(L/min)\n";
+  flowData.forEach(([time, flow]) => {
+    content += `${time}\t${flow.toFixed(2)}\n`;
+  });
+
+  // 🔽 Send POST request to Vercel API route
+  fetch("/api/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      patient_id: id,
+      patient_name: name,
+      content: content
+    })
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("儲存失敗");
+    return res.json();
+  })
+  .then(data => alert("儲存成功！檔案路徑：" + data.path))
+  .catch(err => alert("儲存失敗：" + err.message));
+}
+
+
+
+// 預設初始狀態
+setStep(0);
+</script>
+</body>
+</html>
