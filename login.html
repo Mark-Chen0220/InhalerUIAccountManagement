@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>登入或註冊</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: Arial, "Microsoft JhengHei", "微軟正黑體", "PMingLiU", "新細明體", sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 350px;
+      margin: 60px auto;
+      background: #fff;
+      border-radius: 8px;
+      padding: 30px 25px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 18px;
+      color: #1976d2;
+    }
+    input[type="text"], input[type="password"], input[type="email"] {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0 16px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #1976d2;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .toggle-link {
+      display: block;
+      text-align: center;
+      margin-top: 12px;
+      color: #1976d2;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .hidden { display: none; }
+    .message {
+      text-align: center;
+      margin-top: 10px;
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 登入表單 -->
+    <form id="login-form">
+      <h2>登入</h2>
+      <input type="email" id="login-email" placeholder="電子郵件" required>
+      <input type="password" id="login-password" placeholder="密碼" required>
+      <button type="submit">登入</button>
+      <span class="toggle-link" onclick="toggleForms()">沒有帳號？註冊</span>
+      <div id="login-message" class="message"></div>
+    </form>
+
+    <!-- 註冊表單 -->
+    <form id="register-form" class="hidden">
+      <h2>註冊</h2>
+      <input type="text" id="register-username" placeholder="用戶名稱（可略過）">
+      <input type="email" id="register-email" placeholder="電子郵件" required>
+      <input type="password" id="register-password" placeholder="密碼" required>
+      <button type="submit">註冊</button>
+      <span class="toggle-link" onclick="toggleForms()">已有帳號？登入</span>
+      <div id="register-message" class="message"></div>
+    </form>
+  </div>
+
+  <script>
+    // 替換成你的 Supabase 設定
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    function toggleForms() {
+      document.getElementById('login-form').classList.toggle('hidden');
+      document.getElementById('register-form').classList.toggle('hidden');
+      document.getElementById('login-message').textContent = '';
+      document.getElementById('register-message').textContent = '';
+    }
+
+    document.getElementById('login-form').onsubmit = async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const messageEl = document.getElementById('login-message');
+      if (error) {
+        messageEl.textContent = '登入失敗：' + error.message;
+      } else {
+        messageEl.style.color = 'green';
+        messageEl.textContent = '登入成功！';
+        console.log('登入使用者：', data);
+        // TODO: redirect or show authenticated content
+      }
+    };
+
+    document.getElementById('register-form').onsubmit = async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('register-email').value;
+      const password = document.getElementById('register-password').value;
+      const username = document.getElementById('register-username').value;
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { username: username || null } // 存為 metadata
+        }
+      });
+
+      const messageEl = document.getElementById('register-message');
+      if (error) {
+        messageEl.textContent = '註冊失敗：' + error.message;
+      } else {
+        messageEl.style.color = 'green';
+        messageEl.textContent = '註冊成功！請確認您的電子郵件。';
+        console.log('註冊資料：', data);
+      }
+    };
+  </script>
+</body>
+</html>
