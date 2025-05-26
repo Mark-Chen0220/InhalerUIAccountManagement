@@ -12,6 +12,7 @@
     .row { display: flex; gap: 16px; }
     .row input { flex: 1; padding: 8px; border: 1px solid #cce0cc; border-radius: 6px; }
     .save-btn { background: #1abc68; color: #fff; border: none; border-radius: 6px; padding: 10px 24px; font-size: 16px; cursor: pointer; margin-top: 16px; }
+    .login-btn { background: #4e7fff; color: #fff; border: none; border-radius: 6px; padding: 8px 18px; font-size: 15px; cursor: pointer; margin-bottom: 12px; }
     .connect-btn { background: #4e7fff; color: #fff; border: none; border-radius: 6px; padding: 8px 18px; font-size: 15px; cursor: pointer; margin-bottom: 12px; }
     .status { font-size: 18px; margin: 10px 0 0 0; color: #1abc68; }
     .lights { display: flex; gap: 16px; margin: 16px 0; }
@@ -101,6 +102,8 @@
     <div class="header">
       <h2>呼吸流量監測</h2>
     </div>
+    <!-- Top-right login button -->
+    <button class="login-btn" id="loginBtn" title="登入以保存資料">登入帳號</button>
     <button class="connect-btn" id="connectBtn" title="點擊名為USB Serial的裝置">連接裝置</button>
     <div id="usbHint">點擊名為USB Serial的裝置</div>
     <div id="status" class="status"></div>
@@ -118,7 +121,7 @@
     </div>
     <!-- 肺部沈積率圖像 -->
     <div id="lungsBox">
-      <img src="img/lungs.png" id="lungsImg" width="267" height="234" alt="肺部圖像">
+      <img src="lungs.png" id="lungsImg" width="267" height="234" alt="肺部圖像">
       <div id="lungsFill"></div>
       <div id="lungsPercent"></div>
     </div>
@@ -145,17 +148,17 @@ const instructions = [
 const stepImagesData = [
   // step 0
   [
-    { src: "img/lidOff_highRes.png", alt: "取下吸入器蓋子", caption: "取下吸入器蓋子" },
-    { src: "img/clockwise.png", alt: "順時針旋轉", caption: "順時針旋轉" }
+    { src: "lidOff_highRes.png", alt: "取下吸入器蓋子", caption: "取下吸入器蓋子" },
+    { src: "clockwise.png", alt: "順時針旋轉", caption: "順時針旋轉" }
   ],
   // step 1
   [
-    { src: "img/lidOff_highRes.png", alt: "取下吸入器蓋子", caption: "取下吸入器蓋子" },
-    { src: "img/counterclockwise.png", alt: "逆時針旋轉", caption: "逆時針旋轉" }
+    { src: "lidOff_highRes.png", alt: "取下吸入器蓋子", caption: "取下吸入器蓋子" },
+    { src: "counterclockwise.png", alt: "逆時針旋轉", caption: "逆時針旋轉" }
   ],
   // step 2
   [
-    { src: "img/breatheOutandIn.png", alt: "吐氣吸氣示意", caption: "吐氣3秒後深吸3秒" }
+    { src: "breatheOutandIn.png", alt: "吐氣吸氣示意", caption: "吐氣3秒後深吸3秒" }
   ],
   // step 3
   []
@@ -262,6 +265,10 @@ function showLungFill(budld) {
   document.getElementById('lungsFill').style.height = (percent*100) + '%';
   document.getElementById('lungsPercent').innerText = percentText;
 }
+
+document.getElementById("loginBtn").onclick = function() {
+    window.location.href = "login.html";
+};
 
 document.getElementById('connectBtn').onclick = async function () {
   document.getElementById('usbHint').style.display = 'none';
