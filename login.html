@@ -85,8 +85,6 @@
 
   <script>
     // 替換成你的 Supabase 設定
-    const SUPABASE_URL = 'https://ttmikfiisngmckyycwsz.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0bWlrZmlpc25nbWNreXljd3N6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgyNDY2MzYsImV4cCI6MjA2MzgyMjYzNn0.ejE4Bn6UCuSfJ9qc3KYDXGZyCqaqjVHe_1uV2aHCXUs';
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     function toggleForms() {
@@ -100,17 +98,23 @@
       e.preventDefault();
       const email = document.getElementById('login-email').value;
       const password = document.getElementById('login-password').value;
+    
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       const messageEl = document.getElementById('login-message');
+    
       if (error) {
+        messageEl.style.color = 'red';
         messageEl.textContent = '登入失敗：' + error.message;
       } else {
         messageEl.style.color = 'green';
-        messageEl.textContent = '登入成功！';
+        messageEl.textContent = '登入成功，正在跳轉...';
         console.log('登入使用者：', data);
-        // TODO: redirect or show authenticated content
+        setTimeout(() => {
+          window.location.href = 'InhalerUI_V4.html';
+        }, 1000); // Give user 1 second to see the message
       }
     };
+
 
     document.getElementById('register-form').onsubmit = async function(e) {
       e.preventDefault();
