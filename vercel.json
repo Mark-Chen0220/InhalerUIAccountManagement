@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/InhalerUI_V4.html" }
+  ]
+}
