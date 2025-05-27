@@ -136,7 +136,13 @@
     <button class="save-btn" onclick="saveData()">儲存資料</button>
   </div>
 
-<script>
+<script type=module>
+
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+const SUPABASE_URL = 'https://jqdtlkxvyrrpnbkyiigg.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpxZHRsa3h2eXJycG5ia3lpaWdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgyNTAwMTksImV4cCI6MjA2MzgyNjAxOX0.6ufrl0cNDT1LZqge0yTEGzzJ4IlYYubtKis2_ewkERw';
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 const instructions = [
   "請先取下吸入器蓋子，然後放置吸入器。若燈未亮，請向左（順時針）旋轉，左側第一顆指示燈應亮綠色。",
   "請確定吸入器蓋子已取下，然後向右（逆時針）旋轉以釋放劑量，第二顆燈應亮綠色。",
@@ -170,13 +176,6 @@ const lightModes = [
   ['green', 'green', 'red'],
   ['green', 'green', 'green']
 ];
-
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = 'https://ttmikfiisngmckyycwsz.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0bWlrZmlpc25nbWNreXljd3N6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgyNDY2MzYsImV4cCI6MjA2MzgyMjYzNn0.ejE4Bn6UCuSfJ9qc3KYDXGZyCqaqjVHe_1uV2aHCXUs';
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const ctx = document.getElementById('flowChart').getContext('2d');
 let chartData = {
