@@ -128,10 +128,9 @@
 
   <script>
     // 替換成你的 Supabase 設定
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     const SUPABASE_URL = 'https://jqdtlkxvyrrpnbkyiigg.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpxZHRsa3h2eXJycG5ia3lpaWdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgyNTAwMTksImV4cCI6MjA2MzgyNjAxOX0.6ufrl0cNDT1LZqge0yTEGzzJ4IlYYubtKis2_ewkERw';
-
-    const { createClient } = window.supabase;
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 
