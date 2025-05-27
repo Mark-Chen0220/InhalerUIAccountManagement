@@ -1,5 +1,5 @@
 {
   "rewrites": [
-    { "source": "/", "destination": "/HomePage.html" }
+    { "source": "/", "destination": "/InhalerUI_V4.html" }
   ]
 }
