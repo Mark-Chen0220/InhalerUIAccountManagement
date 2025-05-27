@@ -121,7 +121,7 @@
     </div>
     <!-- 肺部沈積率圖像 -->
     <div id="lungsBox">
-      <img src="img/lungs.png" id="lungsImg" width="267" height="234" alt="肺部圖像">
+      <img src="lungs.png" id="lungsImg" width="267" height="234" alt="肺部圖像">
       <div id="lungsFill"></div>
       <div id="lungsPercent"></div>
     </div>
@@ -148,17 +148,17 @@ const instructions = [
 const stepImagesData = [
   // step 0
   [
-    { src: "img/lidOff_highRes.png", alt: "取下吸入器蓋子", caption: "取下吸入器蓋子" },
-    { src: "img/clockwise.png", alt: "順時針旋轉", caption: "順時針旋轉" }
+    { src: "lidOff_highRes.png", alt: "取下吸入器蓋子", caption: "取下吸入器蓋子" },
+    { src: "clockwise.png", alt: "順時針旋轉", caption: "順時針旋轉" }
   ],
   // step 1
   [
-    { src: "img/lidOff_highRes.png", alt: "取下吸入器蓋子", caption: "取下吸入器蓋子" },
-    { src: "img/counterclockwise.png", alt: "逆時針旋轉", caption: "逆時針旋轉" }
+    { src: "lidOff_highRes.png", alt: "取下吸入器蓋子", caption: "取下吸入器蓋子" },
+    { src: "counterclockwise.png", alt: "逆時針旋轉", caption: "逆時針旋轉" }
   ],
   // step 2
   [
-    { src: "img/breatheOutandIn.png", alt: "吐氣吸氣示意", caption: "吐氣3秒後深吸3秒" }
+    { src: "breatheOutandIn.png", alt: "吐氣吸氣示意", caption: "吐氣3秒後深吸3秒" }
   ],
   // step 3
   []
@@ -170,6 +170,13 @@ const lightModes = [
   ['green', 'green', 'red'],
   ['green', 'green', 'green']
 ];
+
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = 'https://ttmikfiisngmckyycwsz.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0bWlrZmlpc25nbWNreXljd3N6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgyNDY2MzYsImV4cCI6MjA2MzgyMjYzNn0.ejE4Bn6UCuSfJ9qc3KYDXGZyCqaqjVHe_1uV2aHCXUs';
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const ctx = document.getElementById('flowChart').getContext('2d');
 let chartData = {
@@ -267,7 +274,7 @@ function showLungFill(budld) {
 }
 
 document.getElementById("loginBtn").onclick = function() {
-    window.location.href = "Login.html";
+    window.location.href = "login.html";
 };
 
 document.getElementById('connectBtn').onclick = async function () {
@@ -373,7 +380,7 @@ function calculateBUDLD() {
   };
 }
 
-function saveData() {
+async function saveData() {
   const id = document.getElementById('patientId').value.trim();
   const name = document.getElementById('patientName').value.trim();
 
@@ -393,22 +400,19 @@ function saveData() {
     content += `${time}\t${flow.toFixed(2)}\n`;
   });
 
-  // 🔽 Send POST request to Vercel API route
-  fetch("/api/save", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      patient_id: id,
-      patient_name: name,
-      content: content
-    })
-  })
-  .then(res => {
-    if (!res.ok) throw new Error("儲存失敗");
-    return res.json();
-  })
-  .then(data => alert("儲存成功！檔案路徑：" + data.path))
-  .catch(err => alert("儲存失敗：" + err.message));
+  // Convert content to a Blob for upload
+  const file = new Blob([content], { type: 'text/plain' });
+  const fileName = `${id}_${name}_${new Date().toISOString()}.txt`;
+
+  // Upload to Supabase storage bucket 'records'
+  const { data, error } = await supabase.storage.from('records').upload(`${userId}/${fileName}`, file);
+
+  if (error) {
+    alert('儲存失敗：' + error.message);
+    return;
+  }
+
+  alert('儲存成功！檔案已上傳至 Supabase 存儲桶 records。');
 }
 
 
