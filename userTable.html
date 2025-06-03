@@ -85,7 +85,7 @@
         return;
       }
       user = currentUser;
-      document.getElementById('user-name').textContent = user.user_metadata?.full_name || user.email;
+      document.getElementById('user-name').textContent = user.user_metadata?.display_name || user.email;
       document.getElementById('user-id').textContent = 'ID: ' + user.id;
       document.getElementById('user-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.user_metadata?.full_name || user.email)}`;
 
