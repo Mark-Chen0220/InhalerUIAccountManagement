@@ -252,7 +252,10 @@
           email,
           password,
           options: {
-            data: {display_name: `${username}`}
+            data: {
+              username: username ? username : null // or simply: username || null
+            }
+          }
         });
         
         if (error) throw error;
