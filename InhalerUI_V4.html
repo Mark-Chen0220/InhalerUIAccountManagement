@@ -136,7 +136,7 @@
     <div id="instruction" class="status"></div>
     <div class="row" style="margin-top: 20px;">
       <input id="patientId" placeholder="病患編號" />
-      <input id="patientName" placeholder="病患姓名" />
+      <input id="patientName" placeholder="病患身分證字號" />
     </div>
     <button class="save-btn" id="saveBtn">儲存資料</button>
   </div>
@@ -430,11 +430,11 @@ async function saveData() {
   const name = document.getElementById('patientName').value.trim();
 
   if (!id || !name) {
-    alert("請輸入病患編號與姓名");
+    alert("請輸入病患編號與身分證字號");
     return;
   }
 
-  let content = `病患ID: ${id}\n病患姓名: ${name}\n\n`;
+  let content = `病患ID: ${id}\n身分證字號: ${name}\n\n`;
   if (budldValue) {
     content += `肺部沈積率 (BUDLD): ${budldValue.budld} µg\n`;
     content += `峰值流量: ${budldValue.peakFlow} L/min\n`;
@@ -499,3 +499,4 @@ setStep(0);
 </script>
 </body>
 </html>
+
