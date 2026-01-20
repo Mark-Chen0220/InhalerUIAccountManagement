@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>呼吸流量監測</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body { font-family: 'Noto Sans TC', Arial, sans-serif; background: #f7faf7; margin: 0; }
@@ -145,7 +145,7 @@
 const { createClient } = window.supabase;
 const SUPABASE_URL = 'https://tjqnknlpqopqicumqwoq.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRqcW5rbmxwcW9wcWljdW1xd29xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4OTUyNzgsImV4cCI6MjA4NDQ3MTI3OH0.QKUBTNmy5SAVb6t0BULFQhxXnOGei6ZsJqCM3QPbJ_Y';
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const greeting = document.getElementById('greeting');
 const myfilesBtn = document.getElementById('myfilesBtn');
@@ -153,7 +153,7 @@ const loginBtn = document.getElementById('loginBtn');
 
 // Check login state on load
 async function checkLogin() {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await supabaseClient.auth.getUser();
   if (user) {
     greeting.textContent = `Hello, ${user.user_metadata?.full_name || user.email || 'User'}!`;
     greeting.classList.remove('hidden');
@@ -461,7 +461,7 @@ async function saveData() {
   const {
     data: { user },
     error: userError
-  } = await supabase.auth.getUser();
+  } = await supabaseClient.auth.getUser();
 
   if (userError || !user) {
     alert('請先登入才能上傳檔案');
@@ -480,7 +480,7 @@ async function saveData() {
   URL.revokeObjectURL(a.href);
 
   // ✅ Upload to Supabase under UID folder
-  const { error } = await supabase
+  const { error } = await supabaseClient
     .storage
     .from('records')
     .upload(filePath, blob);
@@ -499,5 +499,4 @@ setStep(0);
 </script>
 </body>
 </html>
-
 
